@@ -1,0 +1,92 @@
+#%RAML 1.0
+title: tshirt-api-new
+version: v1
+description: API to unlock Inventory data from a Database (to deprecate this functionality form the actual t-shirt web service).
+
+types:
+    InventoryItem:
+        type: "object"
+        properties:
+            productcode: "string"
+            name: "string"
+            quantity: "integer"
+            description: "string"
+            colour: "string"
+            tsize: "string"
+            cost: "integer"
+
+    Inventory:
+        type: "object"
+        properties:
+            inventory: InventoryItem[]
+
+/inv:
+    description: Collection of inv related operations
+    /createTable:
+        description: Create a table to store the data. If the table exists no action is performed
+        post:
+    /bulkUpload:
+        description: Upload inventory  which is passed in the form of a JSON. Inserts the data into the table
+        post:
+            body:
+                application/json:
+                    type: "Inventory"
+    /list:
+        description: Lists the current state of inventory
+        get:
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: "Inventory"
+                            example:
+                                "inventory":
+                                    -
+                                        productcode: "123"
+                                        name: "brand-A"
+                                        quantity: 100
+                                        description: "Brand A"
+                                        colour: "Green"
+                                        tsize: "S"
+                                        cost: 120
+
+                404:
+                    body:
+                        application/json:
+                            properties:
+                                message: string
+                            example:  |
+                              {
+                                "message" : "Could not list the  "
+                              }
+    /get:
+        description: Get the inventory  details of particular product
+        get:
+            queryParameters:
+                productcode:
+                    description: Unique code for a given product
+                    required: true
+                    type: string
+                    example: "123"
+            responses:
+                200:
+                    body:
+                        application/json:
+                            type: "InventoryItem"
+                            example:
+                                productcode: "123"
+                                name: "abc"
+                                quantity: 100
+                                description: "Brand A"
+                                colour: "Green"
+                                tsize: "S"
+                                cost: 120
+                404:
+                    body:
+                        application/json:
+                            properties:
+                                message: string
+                            example:  |-
+                              {
+                                "message" : "Could not list "
+                              }
