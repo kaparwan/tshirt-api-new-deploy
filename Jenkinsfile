@@ -1,11 +1,6 @@
-/* groovylint-disable NestedBlockDepth, SpaceAfterMethodCallName, SpaceInsideParentheses */
+/* groovylint-disable SpaceAfterMethodCallName, SpaceInsideParentheses */
 pipeline {
   agent any
-
-  parameters {
-    booleanParam(name: 'cloudhubDeploy', defaultValue: false)
-  }
-
   tools {
       maven 'maven-3.8.5'
   }
@@ -33,29 +28,11 @@ pipeline {
       }
     }
 
-    stage('Deploy Local/Standalone or Cloudhub') {
+    stage ('Deploy') {
       steps {
-        script {
-          if (params.cloudhubDeploy) {
-            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId:'anypoint-login-credentials',
-usernameVariable: 'ANYPOINT_USERNAME', passwordVariable: 'ANYPOINT_PASSWORD']
-            ]) {
-              sh 'echo *** cloudhub deploy *** ; \
-             mvn deploy  -DmuleDeploy   -Dmule.version=4.4.0 \
-            -Danypoint.userName=$ANYPOINT_USERNAME  \
-            -Danypoint.userPass=$ANYPOINT_PASSWORD \
-            -DappName=tshirt-api-cloudhub \
-            -Dcloudhub.environment=Sandbox \
-            -DappName=tshirtApiCloudhub \
-            -Dcloudhub.workerType=micro \
-            -Dcloudhub.workers=1 '
-            }
-          } else {
-            sshagent(credentials : ['af181f3a-9f7b-44ec-b2db-e8d9e63dc800']) {
-              sh 'ssh -o StrictHostKeyChecking=no vagrant@prod-runtime hostname'
-              sh 'scp -o StrictHostKeyChecking=no  ./target/tshirt-api*.jar  vagrant@prod-runtime:/opt/mule/apps/'
-            }
-          }
+        sshagent(credentials : ['ac114bc0-d7ab-4967-904b-1dda36b8314a']) {
+            sh 'ssh -o StrictHostKeyChecking=no vagrant@dev-runtime hostname'
+            sh 'scp -o StrictHostKeyChecking=no ./target/*.jar  vagrant@dev-runtime:/opt/mule/apps/'
         }
       }
     }
